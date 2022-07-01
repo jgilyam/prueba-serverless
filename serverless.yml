@@ -1,0 +1,62 @@
+service: prueba
+frameworkVersion: '3'
+
+plugins:
+  - serverless-dynamodb-local
+  - serverless-offline
+  - serverless-dynamodb-seed
+
+custom:
+  dynamodb:
+    stages:
+      - dev
+    start:
+      migrate: true
+      seed: false
+    seed:
+      domain:
+            table: usersTable
+            sources: 
+                - ./usersTable.json
+
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - httpApi:
+          path: /
+          method: get
+  listar:
+    handler: src/listar.listar
+    events:
+      - httpApi:
+          path: /listar
+          method: get
+  getT:
+    handler: src/getUsers.getTasks
+    events:
+      - httpApi:
+          path: /show
+          method: get
+
+resources: # CloudFormation template syntax
+  Resources:
+    usersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: usersTable
+        AttributeDefinitions:
+          - AttributeName: userId_polygonId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId_polygonId
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+          
